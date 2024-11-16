@@ -1,0 +1,66 @@
+﻿@page
+@using Todo.Data;
+@model IndexModel
+
+<div class="text-center">
+    <div class="col-3">        
+    </div>
+    <div class="col">        
+        <div class="row mt-5">
+            <h1>Create new task</h1>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-10">
+                            <input placeholder="Enter your task... (max. @Config.MaxCharForTask characters)" maxlength="@Config.MaxCharForTask" class="w-75" id="item-task" />
+                            <input type="date" id="item-duedate" min="@DateTime.UtcNow.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-2">
+                            <button class="btn-sm btn-success w-100" onclick="saveItem()">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>                      
+        </div>
+        <div class="row mt-3" id="item-list">
+            @await Html.PartialAsync("~/Views/_ItemList.cshtml", Model.Items)                   
+        </div>
+    </div>
+    <div class="col-3">
+    </div>
+</div>
+
+<script>
+    function saveItem() {
+        data = {
+            Task: $("#item-task").val(),
+            DueDateUtc: $("#item-duedate").val()
+        }
+
+        var duedate = new Date(data.DueDateUtc).getDate().toString()
+        var today = new Date().getDate().toString()
+
+        if (duedate < today){
+            alert("The minimum DueDate is today.")
+            return
+        }
+
+
+        if (data.Task == "" || data.DueDateUtc == "") {
+            alert("Provide Task and DueDate.")
+            return
+        }
+        
+        $.ajax({
+            url: '/saveitem',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data) {
+                $("#item-task").val("")
+                $('input[type="datetime"]').val('');
+                $('#item-list').html(data);
+            }
+        })
+    }
+</script>

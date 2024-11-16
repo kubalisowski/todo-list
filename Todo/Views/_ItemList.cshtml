@@ -1,0 +1,120 @@
+﻿@using Database.Domain;
+@model IList<Item>
+
+<h1>Tasks</h1>
+<div class="card">
+    <div class="card-body">
+        <div class="row mb-2">
+            <div class="col-1">
+            </div>
+            <div class="col-2">
+                <b>Duedate</b>
+            </div>
+            <div class="col-7">
+                <b>Todo Tasks</b>
+            </div>
+            <div class="row-2">
+            </div>
+        </div>
+        @foreach (var item in Model)
+        {
+            <div class="row mb-2">
+                <div class="col-1">
+                    @if (item.IsDone)
+                    {
+                        <input type="checkbox" checked class="status-checkbox" data-itemid="@item.Id" />
+                    }
+                    else
+                    {
+                        <input type="checkbox" class="status-checkbox" data-itemid="@item.Id" />
+                    }
+                </div>
+
+                <div class="col-2">
+                    @if (item.IsDone)
+                    {
+                        <s>@item.DueDateUtc.ToShortDateString()</s>
+                    }
+                    else
+                    {
+                        if (item.DueDateUtc.Date < DateTime.UtcNow.Date)
+                        {
+                            <div style="background-color:red;">
+                                @item.DueDateUtc.ToShortDateString()
+                            </div>
+                        }
+                        else
+                        {
+                            @item.DueDateUtc.ToShortDateString()
+                        }                                               
+                    }
+                </div>
+
+                <div class="col-7 text-wrap">
+                    @if (item.IsDone)
+                    {
+                        <s>@item.Task</s>
+                    }
+                    else
+                    {
+                        @item.Task
+                    }
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-danger" onclick="deleteItem(@item.Id)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.status-checkbox').change(function () {
+            console.log(11)
+            var itemId = $(this).data("itemid")
+            var isChecked = $(this).is(':checked')
+            updateItemStatus(itemId, isChecked)        
+        })
+    })
+
+    function updateItemStatus(itemId, isChecked) {
+        data = {
+            Id: itemId,
+            Task: '',
+            IsDone: isChecked
+        }
+
+        $.ajax({
+            url: '/updateitemstatus',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data) {
+                $('#item-list').html(data);
+            }
+        })
+    }
+
+    function deleteItem(itemId) {
+        data = {
+            Id: itemId,
+            Task: ''
+        }
+
+        $.ajax({
+            url: '/deleteitem',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data) {
+                $('#item-list').html(data);
+            }
+        })
+    }
+</script>
